@@ -91,7 +91,7 @@ class tray_icon:
         self.status_icon.set_from_pixbuf(unread_icon_pixbuf)
 
 def get_mailboxes():
-    # Getting the path of all the boxes
+    # Getting the path of all the mailboxes
     fd =  open(expanduser(mailbox_file), 'r')
     boxes = filter(lambda v: (re.search(ignore, v) == None),
             (b.rstrip().replace('+','').replace('"','')
@@ -107,11 +107,6 @@ class filesystem_watcher:
 
         for box in boxes:
             self.wm.add_watch(maildir_folder+box+"/new", pyinotify.IN_CREATE | pyinotify.IN_MOVED_TO | pyinotify.IN_DELETE | pyinotify.IN_MOVED_FROM)
-
-        return
-
-    def callback(self, inotifier):
-        return False
 
     def stop(self):
         self.inotifier.stop()
