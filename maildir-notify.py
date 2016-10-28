@@ -27,7 +27,7 @@ read_icon_pixbuf = pixbuf_new_from_file(read_mail_icon)
 
 gobject.threads_init()  # Allows GTK functions to be called from other threads (I think...)
 
-class notification(pyinotify.ProcessEvent):
+class desktop_notification(pyinotify.ProcessEvent):
     def __init__(self, name):
         pynotify.init(name)
 
@@ -38,13 +38,13 @@ class notification(pyinotify.ProcessEvent):
         self.notify_pre(event)
 
     def process_IN_DELETE(self,event):
-        icon.set_icon_old_mail()
+        i_tray_icon.set_icon_old_mail()
 
     def process_IN_MOVED_FROM(self,event):
-        icon.set_icon_old_mail()
+        i_tray_icon.set_icon_old_mail()
 
     def notify_pre(self, event):
-        icon.set_icon_new_mail()
+        i_tray_icon.set_icon_new_mail()
         if (enable_desktop_notifications):
             self.notify(event)
 
@@ -63,7 +63,7 @@ class notification(pyinotify.ProcessEvent):
         n.show()
 
 def quit_app(something):
-    watcher.stop()
+    i_filesystem_watcher.stop()
     gtk.main_quit()
 
 class tray_icon:
@@ -117,9 +117,8 @@ class filesystem_watcher:
         self.inotifier.stop()
 
 if __name__ == '__main__':
-    icon = tray_icon()
-    notifier = notification(r'maildir-notify.py')
-    watcher = filesystem_watcher(get_mailboxes(), notifier)
-    icon_call = icon.set_icon_new_mail
+    i_tray_icon = tray_icon()
+    notifier = desktop_notification(r'maildir-notify.py')
+    i_filesystem_watcher = filesystem_watcher(get_mailboxes(), notifier)
 
     gtk.main()
