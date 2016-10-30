@@ -154,6 +154,7 @@ class filesystem_watcher:
     def stop(self):
         self.inotifier.stop()
 
+
 if __name__ == '__main__':
     i_tray_icon = tray_icon()
     notifier = desktop_notification(r'maildir-notify.py')
