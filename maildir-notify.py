@@ -21,7 +21,7 @@ mailbox_file = expanduser(r"~/.mutt/mailboxes")
 maildir_folder = expanduser(r"~/Maildir/")
 notification_timeout = 12000
 ignore = "trash$|spam$|sent$|junk|drafts?$|calendar|outbox|clutter$"
-enable_desktop_notifications = False
+enable_desktop_notifications = True
 
 unread_icon_pixbuf = pixbuf_new_from_file(unread_mail_icon)
 read_icon_pixbuf = pixbuf_new_from_file(read_mail_icon)
@@ -52,15 +52,17 @@ class desktop_notification(pyinotify.ProcessEvent):
         if (enable_desktop_notifications):
             self.notify(event)
 
+    def dec_header(self, h):
+        return ' '.join(unicode(s, e if bool(e) else 'ascii')
+                        for s, e in decode_header(h))
+
     def notify(self, event):
         # Handling a new mail
-        dec_header = lambda h: ' '.join(
-            unicode(s, e if bool(e) else 'ascii') for s, e in decode_header(h))
 
         fd = open(event.pathname, 'r')
         mail = MaildirMessage(message=fd)
-        From = "From: " + dec_header(mail['From'])
-        Subject = "Subject: " + dec_header(mail['Subject'])
+        From = "From: " + self.dec_header(mail['From'])
+        Subject = "Subject: " + self.dec_header(mail['Subject'])
         n = pynotify.Notification(
             "New mail in " + '/'.join(event.path.split('/')[-3: -1]),
             From + "\n" + Subject)
