@@ -63,11 +63,13 @@ class desktop_notification(pyinotify.ProcessEvent):
         n.show()
 
 def quit_app(something):
-    i_filesystem_watcher.stop()
+    if (i_tray_icon.enabled == True):
+        i_filesystem_watcher.stop()
     gtk.main_quit()
 
 class tray_icon:
     def __init__(self):
+        self.enabled = True
         self.status_icon = gtk.status_icon_new_from_pixbuf(read_icon_pixbuf)
         self.menu = gtk.Menu()
 
@@ -77,11 +79,30 @@ class tray_icon:
         self.menu_quit.show()
 
         self.status_icon.connect('popup-menu', self.menu_popup)
+        self.status_icon.connect('activate', self.toggle_disable)
 
     def menu_popup(self, data, button, time):
         self.menu.popup(None, None, None, button, time)
 
-#    def set_icon_disabled(self)
+    def toggle_disable(self, data):
+        if (self.enabled == True):
+            self.disable()
+            self.enabled = False
+        else:
+            self.enable()
+            self.enabled = True
+
+    def enable(self):
+        self.set_icon_old_mail()
+        i_filesystem_watcher = filesystem_watcher(get_mailboxes(), notifier)
+
+    def disable(self):
+        self.set_icon_disabled()
+        i_filesystem_watcher.stop()
+
+    def set_icon_disabled(self):
+        print("Disabled!")
+        return
 #        self.status_icon.
 
     def set_icon_old_mail(self):
