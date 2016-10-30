@@ -25,22 +25,25 @@ enable_desktop_notifications = False
 unread_icon_pixbuf = pixbuf_new_from_file(unread_mail_icon)
 read_icon_pixbuf = pixbuf_new_from_file(read_mail_icon)
 
-gobject.threads_init()  # Allows GTK functions to be called from other threads (I think...)
+# Allows GTK functions to be called from other threads (I think...)
+gobject.threads_init()
+
 
 class desktop_notification(pyinotify.ProcessEvent):
+
     def __init__(self, name):
         pynotify.init(name)
 
-    def process_IN_CREATE(self,event):
+    def process_IN_CREATE(self, event):
         self.notify_pre(event)
 
-    def process_IN_MOVED_TO(self,event):
+    def process_IN_MOVED_TO(self, event):
         self.notify_pre(event)
 
-    def process_IN_DELETE(self,event):
+    def process_IN_DELETE(self, event):
         i_tray_icon.set_icon_old_mail()
 
-    def process_IN_MOVED_FROM(self,event):
+    def process_IN_MOVED_FROM(self, event):
         i_tray_icon.set_icon_old_mail()
 
     def notify_pre(self, event):
@@ -50,24 +53,30 @@ class desktop_notification(pyinotify.ProcessEvent):
 
     def notify(self, event):
         # Handling a new mail
-        dec_header = lambda h : ' '.join(unicode(s, e if bool(e) else 'ascii') for s, e in decode_header(h))
+        dec_header = lambda h: ' '.join(
+            unicode(s, e if bool(e) else 'ascii') for s, e in decode_header(h))
 
         fd = open(event.pathname, 'r')
         mail = MaildirMessage(message=fd)
         From = "From: " + dec_header(mail['From'])
         Subject = "Subject: " + dec_header(mail['Subject'])
-        n = pynotify.Notification("New mail in "+'/'.join(event.path.split('/')[-3:-1]), From+ "\n"+ Subject)
+        n = pynotify.Notification(
+            "New mail in " + '/'.join(event.path.split('/')[-3: -1]),
+            From + "\n" + Subject)
         fd.close()
         n.set_icon_from_pixbuf(unread_icon_pixbuf)
         n.set_timeout(notification_timeout)
         n.show()
 
+
 def quit_app(something):
-    if (i_tray_icon.enabled == True):
+    if (i_tray_icon.enabled):
         i_filesystem_watcher.stop()
     gtk.main_quit()
 
+
 class tray_icon:
+
     def __init__(self):
         self.enabled = True
         self.status_icon = gtk.status_icon_new_from_pixbuf(read_icon_pixbuf)
@@ -85,7 +94,7 @@ class tray_icon:
         self.menu.popup(None, None, None, button, time)
 
     def toggle_disable(self, data):
-        if (self.enabled == True):
+        if (self.enabled):
             self.disable()
             self.enabled = False
         else:
@@ -93,15 +102,17 @@ class tray_icon:
             self.enabled = True
 
     def enable(self):
+        print("Enabling notifier")
         self.set_icon_old_mail()
+        global i_filesystem_watcher
         i_filesystem_watcher = filesystem_watcher(get_mailboxes(), notifier)
 
     def disable(self):
+        print("Disabling notifier")
         self.set_icon_disabled()
         i_filesystem_watcher.stop()
 
     def set_icon_disabled(self):
-        print("Disabled!")
         return
 #        self.status_icon.
 
@@ -111,23 +122,31 @@ class tray_icon:
     def set_icon_new_mail(self):
         self.status_icon.set_from_pixbuf(unread_icon_pixbuf)
 
+
 def get_mailboxes():
     # Getting the path of all the mailboxes
-    fd =  open(expanduser(mailbox_file), 'r')
-    boxes = filter(lambda v: (re.search(ignore, v) == None),
-            (b.rstrip().replace('+','').replace('"','')
-                for b in re.sub("^\s?mailboxes\s", "", fd.readline()).split(' ')))
+    fd = open(expanduser(mailbox_file), 'r')
+    boxes = filter(
+        lambda v: (re.search(ignore, v) == None),
+        (b.rstrip().replace('+', '').replace('"', '')
+         for b in re.sub("^\s?mailboxes\s", "", fd.readline()).split(' ')))
     fd.close()
     return boxes
 
+
 class filesystem_watcher:
+
     def __init__(self, boxes, notifier):
         self.wm = pyinotify.WatchManager()
         self.inotifier = pyinotify.ThreadedNotifier(self.wm, notifier)
         self.inotifier.start()
 
         for box in boxes:
-            self.wm.add_watch(maildir_folder+box+"/new", pyinotify.IN_CREATE | pyinotify.IN_MOVED_TO | pyinotify.IN_DELETE | pyinotify.IN_MOVED_FROM)
+            self.wm.add_watch(maildir_folder + box + "/new",
+                              pyinotify.IN_CREATE |
+                              pyinotify.IN_MOVED_TO |
+                              pyinotify.IN_DELETE |
+                              pyinotify.IN_MOVED_FROM)
 
     def stop(self):
         self.inotifier.stop()
