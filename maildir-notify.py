@@ -3,16 +3,17 @@
 # Based on: https://bbs.archlinux.org/viewtopic.php?pid=962423#p962423
 # This version is modified to handle mailboxes with spaces in the names
 # Modified to use Adwaita icon rather than oxygen icon
+import re
+from email.header import decode_header
+from mailbox import MaildirMessage
+from os.path import expanduser
 
+import gobject
+import gtk
 import pyinotify
 import pynotify
-from os.path import expanduser
-from mailbox import MaildirMessage
-from email.header import decode_header
-import gtk
-import gobject
 from gtk.gdk import pixbuf_new_from_file
-import re
+
 
 unread_mail_icon = r"/usr/share/icons/Adwaita/32x32/status/mail-unread.png"
 read_mail_icon = r"/usr/share/icons/Adwaita/32x32/status/mail-read.png"
