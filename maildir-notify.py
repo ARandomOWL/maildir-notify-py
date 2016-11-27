@@ -17,6 +17,7 @@ from gtk.gdk import pixbuf_new_from_file
 
 unread_mail_icon = r"/usr/share/icons/Adwaita/32x32/status/mail-unread.png"
 read_mail_icon = r"/usr/share/icons/Adwaita/32x32/status/mail-read.png"
+disable_mail_icon = r"/usr/share/icons/Adwaita/32x32/status/dialog-error.png"
 mailbox_file = expanduser(r"~/.mutt/mailboxes")
 maildir_folder = expanduser(r"~/Maildir/")
 notification_timeout = 12000
@@ -25,6 +26,7 @@ enable_desktop_notifications = True
 
 unread_icon_pixbuf = pixbuf_new_from_file(unread_mail_icon)
 read_icon_pixbuf = pixbuf_new_from_file(read_mail_icon)
+disable_icon_pixbuf = pixbuf_new_from_file(disable_mail_icon)
 
 # Allows GTK functions to be called from other threads (I think...)
 gobject.threads_init()
@@ -116,8 +118,7 @@ class tray_icon:
         i_filesystem_watcher.stop()
 
     def set_icon_disabled(self):
-        return
-#        self.status_icon.
+        self.status_icon.set_from_pixbuf(disable_icon_pixbuf)
 
     def set_icon_old_mail(self):
         self.status_icon.set_from_pixbuf(read_icon_pixbuf)
